@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>文献タグ検索 | IL-31 / AD / PN</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      line-height: 1.5;
+      color: #111827;
+      background: #f3f4f6;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      background: radial-gradient(circle at top left, #dbeafe, #f9fafb);
+    }
+
+    .root-container {
+      min-height: 100vh;
+    }
+
+    .page-container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin: 0 0 4px;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin: 0 0 20px;
+    }
+
+    .filter-panel {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      padding: 16px 18px 12px;
+      box-shadow: 0 18px 35px rgba(15, 23, 42, 0.08);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      margin-bottom: 18px;
+    }
+
+    .filter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .filter-header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .filter-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .filter-summary {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    .clear-button {
+      border: none;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      background: #eff6ff;
+      color: #1d4ed8;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+
+    .clear-button:hover {
+      background: #dbeafe;
+      transform: translateY(-1px);
+    }
+
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px 14px;
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 800px) {
+      .filters-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 560px) {
+      body {
+        padding: 16px;
+      }
+      .filters-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .filter-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.8rem;
+    }
+
+    .filter-label {
+      color: #4b5563;
+      font-weight: 500;
+    }
+
+    .filter-select {
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      background: #f9fafb;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+
+    .filter-select:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.4);
+      background: #ffffff;
+    }
+
+    .active-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 0.75rem;
+      margin-top: 4px;
+    }
+
+    .filter-chip {
+      border-radius: 999px;
+      background: #e5e7eb;
+      padding: 2px 10px;
+      color: #374151;
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin: 8px 2px 10px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .results-count {
+      font-size: 0.9rem;
+      color: #374151;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    @media (max-width: 900px) {
+      .results-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .results-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+      border: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.12s ease, box-shadow 0.12s ease,
+        border-color 0.12s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+      border-color: #bfdbfe;
+    }
+
+    .card-image-wrap {
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      overflow: hidden;
+      background: linear-gradient(135deg, #e5e7eb, #f9fafb);
+    }
+
+    .card-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-body {
+      padding: 10px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .card-meta-top {
+      font-size: 0.7rem;
+      color: #6b7280;
+    }
+
+    .card-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin: 0;
+      white-space: pre-wrap;
+    }
+
+    .card-desc {
+      font-size: 0.8rem;
+      color: #4b5563;
+      margin: 2px 0 4px;
+    }
+
+    .card-footer {
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .tag-pill {
+      font-size: 0.7rem;
+      border-radius: 999px;
+      padding: 2px 8px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      white-space: nowrap;
+    }
+
+    .tag-pill.secondary {
+      background: #f3f4ff;
+      color: #4f46e5;
+    }
+
+    .tag-pill.neck {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .card-link {
+      font-size: 0.8rem;
+    }
+
+    .card-link a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    .card-link a:hover {
+      text-decoration: underline;
+    }
+
+    .empty-state {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px dashed #d1d5db;
+      background: rgba(249, 250, 251, 0.9);
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="root-container">
+    <div class="page-container">
+      <header>
+        <h1>文献タグ検索</h1>
+        <p class="subtitle">
+          疾患 × 文献種別 × 内容 × 被験者 × ネック で一気に絞り込み
+        </p>
+      </header>
+
+      <section class="filter-panel">
+        <div class="filter-header">
+          <div class="filter-header-left">
+            <div class="filter-title">タグで絞り込み</div>
+            <div class="filter-summary" id="filter-summary">
+              すべて「すべて」の場合は、全件表示されます
+            </div>
+          </div>
+          <button class="clear-button" id="clear-filters">
+            条件をクリア
+          </button>
+        </div>
+
+        <div class="filters-grid">
+          <div class="filter-field">
+            <label class="filter-label" for="filter-disease">疾患</label>
+            <select id="filter-disease" class="filter-select">
+              <option value="">すべて</option>
+              <option value="AD">AD</option>
+              <option value="PN">PN</option>
+              <option value="乾癬">乾癬</option>
+            </select>
+          </div>
+
+          <div class="filter-field">
+            <label class="filter-label" for="filter-docType">文献</label>
+            <select id="filter-docType" class="filter-select">
+              <option value="">すべて</option>
+              <option value="臨床">臨床</option>
+              <option value="基礎">基礎</option>
+              <option value="レビュー">レビュー・メタアナ等</option>
+            </select>
+          </div>
+
+          <div class="filter-field">
+            <label class="filter-label" for="filter-content">内容</label>
+            <select id="filter-content" class="filter-select">
+              <option value="">すべて</option>
+              <option value="有効性">有効性</option>
+              <option value="安全性">安全性</option>
+            </select>
+          </div>
+
+          <div class="filter-field">
+            <label class="filter-label" for="filter-content2">内容2</label>
+            <select id="filter-content2" class="filter-select">
+              <option value="">すべて</option>
+              <option value="繊維化関連">繊維化関連</option>
+              <option value="睡眠障害関連">睡眠障害関連</option>
+            </select>
+          </div>
+
+          <div class="filter-field">
+            <label class="filter-label" for="filter-subject">被験者</label>
+            <select id="filter-subject" class="filter-select">
+              <option value="">すべて</option>
+              <option value="成人">成人</option>
+              <option value="小児">小児</option>
+            </select>
+          </div>
+
+          <div class="filter-field">
+            <label class="filter-label" for="filter-neck">ネック</label>
+            <select id="filter-neck" class="filter-select">
+              <option value="">すべて</option>
+              <option value="副作用懸念">副作用懸念</option>
+              <option value="IC課題">IC課題</option>
+              <option value="症例像不明確">症例像不明確</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="active-filters" id="active-filters"></div>
+      </section>
+
+      <div class="results-header">
+        <div class="results-count" id="results-count">読み込み中...</div>
+      </div>
+
+      <section class="results-grid" id="results"></section>
+      <div class="empty-state" id="empty-state" style="display:none;">
+        該当する文献がありません。タグ条件を少し緩めてみてください。
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DATA_URL =
+      "https://raw.githubusercontent.com/basdrm39-netizen/paper-research-system/main/papers.json";
+
+    const state = {
+      disease: "",
+      docType: "",
+      content: "",
+      content2: "",
+      subject: "",
+      neck: ""
+    };
+
+    const filterLabels = {
+      disease: "疾患",
+      docType: "文献",
+      content: "内容",
+      content2: "内容2",
+      subject: "被験者",
+      neck: "ネック"
+    };
+
+    let papers = [];
+
+    const resultsEl = document.getElementById("results");
+    const countEl = document.getElementById("results-count");
+    const emptyEl = document.getElementById("empty-state");
+    const activeFiltersEl = document.getElementById("active-filters");
+    const summaryEl = document.getElementById("filter-summary");
+
+    function applyFilters() {
+      return papers.filter((p) => {
+        if (state.disease && p.disease !== state.disease) return false;
+        if (state.docType && p.docType !== state.docType) return false;
+        if (state.content && p.content !== state.content) return false;
+        if (state.content2 && p.content2 !== state.content2) return false;
+        if (state.subject && p.subject !== state.subject) return false;
+        if (state.neck && p.neck !== state.neck) return false;
+        return true;
+      });
+    }
+
+    function renderActiveFilters() {
+      activeFiltersEl.innerHTML = "";
+      const entries = Object.entries(state).filter(
+        ([, value]) => value !== ""
+      );
+
+      if (entries.length === 0) {
+        summaryEl.textContent =
+          "すべて「すべて」の場合は、全件表示されます";
+        return;
+      }
+
+      summaryEl.textContent = "現在の条件：";
+
+      entries.forEach(([key, value]) => {
+        const span = document.createElement("span");
+        span.className = "filter-chip";
+        span.textContent = filterLabels[key] + "：" + value;
+        activeFiltersEl.appendChild(span);
+      });
+    }
+
+    function renderResults(list) {
+      resultsEl.innerHTML = "";
+      if (!list.length) {
+        emptyEl.style.display = "block";
+        return;
+      }
+      emptyEl.style.display = "none";
+
+      list.forEach((p) => {
+        const card = document.createElement("article");
+        card.className = "card";
+
+        if (p.img) {
+          const imgWrap = document.createElement("div");
+          imgWrap.className = "card-image-wrap";
+
+          const img = document.createElement("img");
+          img.className = "card-image";
+          img.src = p.img;
+          img.alt = p.title;
+
+          imgWrap.appendChild(img);
+          card.appendChild(imgWrap);
+        }
+
+        const body = document.createElement("div");
+        body.className = "card-body";
+
+        const metaTop = document.createElement("div");
+        metaTop.className = "card-meta-top";
+        metaTop.textContent = (p.journal || "") + (p.year ? " / " + p.year : "");
+
+        const title = document.createElement("h3");
+        title.className = "card-title";
+        title.textContent = p.title || "";
+
+        body.appendChild(metaTop);
+        body.appendChild(title);
+
+        if (p.desc) {
+          const desc = document.createElement("p");
+          desc.className = "card-desc";
+          desc.textContent = p.desc;
+          body.appendChild(desc);
+        }
+
+        const footer = document.createElement("div");
+        footer.className = "card-footer";
+
+        const tags = document.createElement("div");
+        tags.className = "card-tags";
+
+        function addTag(text, extraClass) {
+          if (!text) return;
+          const span = document.createElement("span");
+          span.className = "tag-pill" + (extraClass ? " " + extraClass : "");
+          span.textContent = text;
+          tags.appendChild(span);
+        }
+
+        addTag(p.disease);
+        addTag(p.docType, "secondary");
+        addTag(p.content, "secondary");
+        addTag(p.content2, "secondary");
+        addTag(p.subject, "secondary");
+        addTag(p.neck, "neck");
+
+        const linkWrap = document.createElement("div");
+        linkWrap.className = "card-link";
+        if (p.url && p.url !== "#") {
+          const a = document.createElement("a");
+          a.href = p.url;
+          a.target = "_blank";
+          a.rel = "noreferrer noopener";
+          a.textContent = "ページを開く";
+          linkWrap.appendChild(a);
+        } else {
+          linkWrap.textContent = "リンク未設定";
+        }
+
+        footer.appendChild(tags);
+        footer.appendChild(linkWrap);
+
+        body.appendChild(footer);
+        card.appendChild(body);
+        resultsEl.appendChild(card);
+      });
+    }
+
+    function render() {
+      const filtered = applyFilters();
+      countEl.textContent =
+        "該当文献：" +
+        filtered.length +
+        "件 / 全" +
+        papers.length +
+        "件";
+      renderActiveFilters();
+      renderResults(filtered);
+    }
+
+    function setupFilters() {
+      const map = {
+        disease: document.getElementById("filter-disease"),
+        docType: document.getElementById("filter-docType"),
+        content: document.getElementById("filter-content"),
+        content2: document.getElementById("filter-content2"),
+        subject: document.getElementById("filter-subject"),
+        neck: document.getElementById("filter-neck")
+      };
+
+      Object.keys(map).forEach((key) => {
+        map[key].addEventListener("change", (e) => {
+          state[key] = e.target.value;
+          render();
+        });
+      });
+
+      document
+        .getElementById("clear-filters")
+        .addEventListener("click", () => {
+          Object.keys(state).forEach((k) => (state[k] = ""));
+          Object.values(map).forEach((sel) => (sel.value = ""));
+          render();
+        });
+    }
+
+    async function init() {
+      try {
+        const res = await fetch(DATA_URL);
+        if (!res.ok) {
+          throw new Error("fetch error: " + res.status);
+        }
+        papers = await res.json();
+        setupFilters();
+        render();
+      } catch (e) {
+        console.error(e);
+        countEl.textContent = "データ読み込みエラー";
+        emptyEl.style.display = "block";
+        emptyEl.textContent =
+          "データ読み込みに失敗しました。papers.json のURLを確認してください。";
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
