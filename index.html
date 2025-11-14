@@ -431,14 +431,36 @@
     const activeFiltersEl = document.getElementById("active-filters");
     const summaryEl = document.getElementById("filter-summary");
 
+    // 「AD、PN」「症例像不明確、IC課題」みたいな複数タグを配列に分割
+    function splitMulti(value) {
+      if (!value) return [];
+      return value
+        .toString()
+        .split(/[、,]/)   // 日本語の「、」と半角カンマ両対応
+        .map((v) => v.trim())
+        .filter(Boolean);
+    }
+
     function applyFilters() {
       return papers.filter((p) => {
-        if (state.disease && p.disease !== state.disease) return false;
-        if (state.docType && p.docType !== state.docType) return false;
-        if (state.content && p.content !== state.content) return false;
-        if (state.content2 && p.content2 !== state.content2) return false;
-        if (state.subject && p.subject !== state.subject) return false;
-        if (state.neck && p.neck !== state.neck) return false;
+        if (state.disease) {
+          if (!splitMulti(p.disease).includes(state.disease)) return false;
+        }
+        if (state.docType) {
+          if (!splitMulti(p.docType).includes(state.docType)) return false;
+        }
+        if (state.content) {
+          if (!splitMulti(p.content).includes(state.content)) return false;
+        }
+        if (state.content2) {
+          if (!splitMulti(p.content2).includes(state.content2)) return false;
+        }
+        if (state.subject) {
+          if (!splitMulti(p.subject).includes(state.subject)) return false;
+        }
+        if (state.neck) {
+          if (!splitMulti(p.neck).includes(state.neck)) return false;
+        }
         return true;
       });
     }
