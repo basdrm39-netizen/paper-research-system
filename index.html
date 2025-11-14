@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>文献タグ検索 | IL-31 / AD / PN</title>
+  <title>文献タグ検索 | IL-31 / AD / PN / 乾癬</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -315,12 +315,13 @@
         </p>
       </header>
 
+      <!-- フィルタパネルここから -->
       <section class="filter-panel">
         <div class="filter-header">
           <div class="filter-header-left">
             <div class="filter-title">タグで絞り込み</div>
             <div class="filter-summary" id="filter-summary">
-              すべて「すべて」の場合は、全件表示されます
+              まず疾患を選択してください（未選択の場合は全件表示）
             </div>
           </div>
           <button class="clear-button" id="clear-filters">
@@ -329,7 +330,8 @@
         </div>
 
         <div class="filters-grid">
-          <div class="filter-field">
+          <!-- 疾患：常に表示 -->
+          <div class="filter-field" id="field-disease">
             <label class="filter-label" for="filter-disease">疾患</label>
             <select id="filter-disease" class="filter-select">
               <option value="">すべて</option>
@@ -339,7 +341,8 @@
             </select>
           </div>
 
-          <div class="filter-field">
+          <!-- 文献：常に表示 -->
+          <div class="filter-field" id="field-docType">
             <label class="filter-label" for="filter-docType">文献</label>
             <select id="filter-docType" class="filter-select">
               <option value="">すべて</option>
@@ -349,25 +352,43 @@
             </select>
           </div>
 
-          <div class="filter-field">
-            <label class="filter-label" for="filter-content">内容</label>
+          <!-- 内容(AD・PN) / 内容(乾癬) 共通 -->
+          <div class="filter-field" id="field-content">
+            <label class="filter-label" for="filter-content" id="label-content">
+              内容
+            </label>
             <select id="filter-content" class="filter-select">
               <option value="">すべて</option>
-              <option value="有効性">有効性</option>
-              <option value="安全性">安全性</option>
+              <!-- AD・PN用 -->
+              <option value="有効性" data-disease="AD,PN">有効性</option>
+              <option value="安全性" data-disease="AD,PN,乾癬">安全性</option>
+              <!-- 乾癬用 -->
+              <option value="使い分け" data-disease="乾癬">使い分け</option>
+              <option value="早期介入" data-disease="乾癬">早期介入</option>
+              <option value="CTX1st訴求" data-disease="乾癬">CTX1st訴求</option>
             </select>
           </div>
 
-          <div class="filter-field">
-            <label class="filter-label" for="filter-content2">内容2</label>
+          <!-- 有効性詳細 / 病態 共通 -->
+          <div class="filter-field" id="field-content2">
+            <label class="filter-label" for="filter-content2" id="label-content2">
+              内容2
+            </label>
             <select id="filter-content2" class="filter-select">
               <option value="">すべて</option>
-              <option value="繊維化関連">繊維化関連</option>
-              <option value="睡眠障害関連">睡眠障害関連</option>
+              <!-- AD・PN用: 有効性詳細 -->
+              <option value="繊維化関連" data-disease="AD,PN">繊維化関連</option>
+              <option value="睡眠障害関連" data-disease="AD,PN">睡眠障害関連</option>
+              <!-- 乾癬用: 病態 -->
+              <option value="頭部乾癬" data-disease="乾癬">頭部乾癬</option>
+              <option value="爪乾癬" data-disease="乾癬">爪乾癬</option>
+              <option value="体軸病変" data-disease="乾癬">体軸病変</option>
+              <option value="関節病変" data-disease="乾癬">関節病変</option>
             </select>
           </div>
 
-          <div class="filter-field">
+          <!-- 被験者：AD/PNのみ使う -->
+          <div class="filter-field" id="field-subject">
             <label class="filter-label" for="filter-subject">被験者</label>
             <select id="filter-subject" class="filter-select">
               <option value="">すべて</option>
@@ -376,7 +397,8 @@
             </select>
           </div>
 
-          <div class="filter-field">
+          <!-- ネック：AD/PNのみ使う -->
+          <div class="filter-field" id="field-neck">
             <label class="filter-label" for="filter-neck">ネック</label>
             <select id="filter-neck" class="filter-select">
               <option value="">すべて</option>
@@ -389,6 +411,7 @@
 
         <div class="active-filters" id="active-filters"></div>
       </section>
+      <!-- フィルタパネルここまで -->
 
       <div class="results-header">
         <div class="results-count" id="results-count">読み込み中...</div>
@@ -436,11 +459,12 @@
       if (!value) return [];
       return value
         .toString()
-        .split(/[、,]/)   // 日本語の「、」と半角カンマ両対応
+        .split(/[、,]/)
         .map((v) => v.trim())
         .filter(Boolean);
     }
 
+    // JSON側のフィルタ本体
     function applyFilters() {
       return papers.filter((p) => {
         if (state.disease) {
@@ -465,6 +489,129 @@
       });
     }
 
+    // 疾患に応じて各セレクトの option を出し分け
+    function updateFilterOptionVisibility() {
+      const disease = state.disease;
+      const selectIds = [
+        "filter-docType",
+        "filter-content",
+        "filter-content2",
+        "filter-subject",
+        "filter-neck"
+      ];
+
+      selectIds.forEach((id) => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+
+        Array.from(sel.options).forEach((opt) => {
+          if (!opt.value) {
+            opt.hidden = false;
+            opt.disabled = false;
+            return;
+          }
+
+          const allowed = opt.dataset.disease;
+
+          if (!disease || !allowed) {
+            opt.hidden = false;
+            opt.disabled = false;
+            return;
+          }
+
+          const list = allowed
+            .split(",")
+            .map((v) => v.trim())
+            .filter(Boolean);
+          const ok = list.includes(disease);
+
+          opt.hidden = !ok;
+          opt.disabled = !ok;
+
+          if (!ok && opt.selected) {
+            sel.value = "";
+            const key = id.replace("filter-", "");
+            if (key in state) {
+              state[key] = "";
+            }
+          }
+        });
+      });
+    }
+
+    // 疾患・内容に応じて「どのフィールド自体を見せるか」
+    function updateFieldVisibility() {
+      const disease = state.disease;
+      const content = state.content;
+
+      const fieldContent = document.getElementById("field-content");
+      const fieldContent2 = document.getElementById("field-content2");
+      const fieldSubject = document.getElementById("field-subject");
+      const fieldNeck = document.getElementById("field-neck");
+
+      const labelContent = document.getElementById("label-content");
+      const labelContent2 = document.getElementById("label-content2");
+
+      const selContent2 = document.getElementById("filter-content2");
+      const selSubject = document.getElementById("filter-subject");
+      const selNeck = document.getElementById("filter-neck");
+
+      if (!disease) {
+        fieldContent.style.display = "none";
+        fieldContent2.style.display = "none";
+        fieldSubject.style.display = "none";
+        fieldNeck.style.display = "none";
+
+        labelContent.textContent = "内容";
+        labelContent2.textContent = "内容2";
+        return;
+      }
+
+      if (disease === "AD" || disease === "PN") {
+        labelContent.textContent = "内容(AD・PN)";
+        labelContent2.textContent = "有効性詳細";
+
+        fieldContent.style.display = "";
+        fieldSubject.style.display = "";
+        fieldNeck.style.display = "";
+
+        if (content === "有効性") {
+          fieldContent2.style.display = "";
+        } else {
+          fieldContent2.style.display = "none";
+          if (selContent2.value) {
+            selContent2.value = "";
+            state.content2 = "";
+          }
+        }
+      } else if (disease === "乾癬") {
+        labelContent.textContent = "内容(乾癬)";
+        labelContent2.textContent = "病態";
+
+        fieldContent.style.display = "";
+        fieldContent2.style.display = "";
+
+        fieldSubject.style.display = "none";
+        fieldNeck.style.display = "none";
+
+        if (selSubject.value) {
+          selSubject.value = "";
+          state.subject = "";
+        }
+        if (selNeck.value) {
+          selNeck.value = "";
+          state.neck = "";
+        }
+      } else {
+        labelContent.textContent = "内容";
+        labelContent2.textContent = "内容2";
+        fieldContent.style.display = "";
+        fieldContent2.style.display = "";
+        fieldSubject.style.display = "";
+        fieldNeck.style.display = "";
+      }
+    }
+
     function renderActiveFilters() {
       activeFiltersEl.innerHTML = "";
       const entries = Object.entries(state).filter(
@@ -473,7 +620,7 @@
 
       if (entries.length === 0) {
         summaryEl.textContent =
-          "すべて「すべて」の場合は、全件表示されます";
+          "まず疾患を選択してください（未選択の場合は全件表示）";
         return;
       }
 
@@ -517,7 +664,8 @@
 
         const metaTop = document.createElement("div");
         metaTop.className = "card-meta-top";
-        metaTop.textContent = (p.journal || "") + (p.year ? " / " + p.year : "");
+        metaTop.textContent =
+          (p.journal || "") + (p.year ? " / " + p.year : "");
 
         const title = document.createElement("h3");
         title.className = "card-title";
@@ -601,6 +749,16 @@
       Object.keys(map).forEach((key) => {
         map[key].addEventListener("change", (e) => {
           state[key] = e.target.value;
+
+          if (key === "disease") {
+            updateFilterOptionVisibility();
+            updateFieldVisibility();
+          }
+
+          if (key === "content") {
+            updateFieldVisibility(); // 有効性 → 有効性詳細を出す
+          }
+
           render();
         });
       });
@@ -610,8 +768,14 @@
         .addEventListener("click", () => {
           Object.keys(state).forEach((k) => (state[k] = ""));
           Object.values(map).forEach((sel) => (sel.value = ""));
+          updateFilterOptionVisibility();
+          updateFieldVisibility();
           render();
         });
+
+      // 初期状態
+      updateFilterOptionVisibility();
+      updateFieldVisibility();
     }
 
     async function init() {
