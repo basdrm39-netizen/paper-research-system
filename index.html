@@ -613,4 +613,200 @@
       }
     }
 
-    function renderActiveFi
+    function renderActiveFilters() {
+      activeFiltersEl.innerHTML = "";
+      const entries = Object.entries(state).filter(
+        ([, value]) => value !== ""
+      );
+
+      if (entries.length === 0) {
+        summaryEl.textContent =
+          "まず疾患を選択してください（未選択の場合は全件表示）";
+        return;
+      }
+
+      summaryEl.textContent = "現在の条件：";
+
+      entries.forEach(([key, value]) => {
+        const span = document.createElement("span");
+        span.className = "filter-chip";
+        span.textContent = filterLabels[key] + "：" + value;
+        activeFiltersEl.appendChild(span);
+      });
+    }
+
+    function renderResults(list) {
+      resultsEl.innerHTML = "";
+      if (!list.length) {
+        emptyEl.style.display = "block";
+        return;
+      }
+      emptyEl.style.display = "none";
+
+      list.forEach((p) => {
+        const card = document.createElement("article");
+        card.className = "card";
+
+        if (p.img) {
+          const imgWrap = document.createElement("div");
+          imgWrap.className = "card-image-wrap";
+
+          const img = document.createElement("img");
+          img.className = "card-image";
+          img.src = p.img;
+          img.alt = p.title;
+
+          imgWrap.appendChild(img);
+          card.appendChild(imgWrap);
+        }
+
+        const body = document.createElement("div");
+        body.className = "card-body";
+
+        const metaTop = document.createElement("div");
+        metaTop.className = "card-meta-top";
+        metaTop.textContent =
+          (p.journal || "") + (p.year ? " / " + p.year : "");
+
+        const title = document.createElement("h3");
+        title.className = "card-title";
+        title.textContent = p.title || "";
+
+        body.appendChild(metaTop);
+        body.appendChild(title);
+
+        if (p.desc) {
+          const desc = document.createElement("p");
+          desc.className = "card-desc";
+          desc.textContent = p.desc;
+          body.appendChild(desc);
+        }
+
+        const footer = document.createElement("div");
+        footer.className = "card-footer";
+
+        const tags = document.createElement("div");
+        tags.className = "card-tags";
+
+        function addTag(text, extraClass) {
+          if (!text) return;
+          const span = document.createElement("span");
+          span.className = "tag-pill" + (extraClass ? " " + extraClass : "");
+          span.textContent = text;
+          tags.appendChild(span);
+        }
+
+        addTag(p.disease);
+        addTag(p.docType, "secondary");
+        addTag(p.content, "secondary");
+        addTag(p.content2, "secondary");
+        addTag(p.subject, "secondary");
+        addTag(p.neck, "neck");
+
+        const linkWrap = document.createElement("div");
+        linkWrap.className = "card-link";
+        if (p.url && p.url !== "#") {
+          const a = document.createElement("a");
+          a.href = p.url;
+          a.target = "_blank";
+          a.rel = "noreferrer noopener";
+          a.textContent = "ページを開く";
+          linkWrap.appendChild(a);
+        } else {
+          linkWrap.textContent = "リンク未設定";
+        }
+
+        footer.appendChild(tags);
+        footer.appendChild(linkWrap);
+
+        body.appendChild(footer);
+        card.appendChild(body);
+        resultsEl.appendChild(card);
+      });
+    }
+
+    function render() {
+      const filtered = applyFilters();
+      countEl.textContent =
+        "該当文献：" +
+        filtered.length +
+        "件 / 全" +
+        papers.length +
+        "件";
+      renderActiveFilters();
+      renderResults(filtered);
+    }
+
+    function setupFilters() {
+      const map = {
+        disease: document.getElementById("filter-disease"),
+        docType: document.getElementById("filter-docType"),
+        content: document.getElementById("filter-content"),
+        content2: document.getElementById("filter-content2"),
+        subject: document.getElementById("filter-subject"),
+        neck: document.getElementById("filter-neck")
+      };
+
+      Object.keys(map).forEach((key) => {
+        map[key].addEventListener("change", (e) => {
+          state[key] = e.target.value;
+
+          if (key === "disease") {
+            updateFilterOptionVisibility();
+            updateFieldVisibility();
+          }
+
+          if (key === "content") {
+            updateFieldVisibility(); // 有効性 → 有効性詳細を出す
+          }
+
+          render();
+        });
+      });
+
+      document
+        .getElementById("clear-filters")
+        .addEventListener("click", () => {
+          Object.keys(state).forEach((k) => (state[k] = ""));
+          Object.values(map).forEach((sel) => (sel.value = ""));
+          updateFilterOptionVisibility();
+          updateFieldVisibility();
+          render();
+        });
+
+      // 初期状態
+      updateFilterOptionVisibility();
+      updateFieldVisibility();
+    }
+
+    async function init() {
+      try {
+        const res = await fetch(DATA_URL);
+        if (!res.ok) {
+          throw new Error("fetch error: " + res.status);
+        }
+        papers = await res.json();
+
+        // ここで phenotype → content2 にマッピング
+        papers = papers.map((p) => {
+          if (!p.content2 && p.phenotype) {
+            return { ...p, content2: p.phenotype };
+          }
+          return p;
+        });
+
+        setupFilters();
+        render();
+      } catch (e) {
+        console.error(e);
+        countEl.textContent = "データ読み込みエラー";
+        emptyEl.style.display = "block";
+        emptyEl.textContent =
+          "データ読み込みに失敗しました。papers.json のURLを確認してください。";
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
