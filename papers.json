@@ -1,0 +1,41 @@
+[
+  {
+    "id": "p1",
+    "title": "Dupilumab によるAD治療後 IL-31動態と痒み・QOLの関連",
+    "disease": "AD",
+    "docType": "臨床",
+    "content": "有効性",
+    "content2": "睡眠障害関連",
+    "subject": "成人",
+    "neck": "副作用懸念",
+    "journal": "J Dermatol (仮)",
+    "year": 2023,
+    "url": "https://example.com/slide-or-note-1"
+  },
+  {
+    "id": "p2",
+    "title": "IL-31 と皮膚神経リモデリング：PNモデルを用いた基礎研究",
+    "disease": "PN",
+    "docType": "基礎",
+    "content": "有効性",
+    "content2": "繊維化関連",
+    "subject": "成人",
+    "neck": "症例像不明確",
+    "journal": "Exp Dermatol (仮)",
+    "year": 2022,
+    "url": "https://example.com/slide-or-note-2"
+  },
+  {
+    "id": "p3",
+    "title": "小児ADにおけるIL-31と睡眠障害の関連：前向きコホート研究",
+    "disease": "AD",
+    "docType": "臨床",
+    "content": "有効性",
+    "content2": "睡眠障害関連",
+    "subject": "小児",
+    "neck": "IC課題",
+    "journal": "Pediatr Dermatol (仮)",
+    "year": 2024,
+    "url": "https://example.com/slide-or-note-3"
+  }
+]
