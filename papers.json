@@ -1,32 +1,32 @@
 [
   {
     "id": "p1",
-    "title": "Dupilumab によるAD治療後 IL-31動態と痒み・QOLの関連",
-    "desc": "成人中等症〜重症ADにおけるDupilumab投与後のIL-31変化と痒み・睡眠指標の関連を検討した臨床研究。",
-    "img": "https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/thumbs/p1.jpg",
+    "title": "ネモリズマブのアトピー性皮膚炎患者の\n瘙痒に対する効果の検討",
+    "desc": "痒疹苔癬化掻破痕病態であればMITも奏功が期待できる可能性があるという報告",
+    "img": "https://raw.githubusercontent.com/basdrm39-netizen/paper-research-system/main/image.png",
     "disease": "AD",
     "docType": "臨床",
-    "content": "有効性",
-    "content2": "睡眠障害関連",
-    "subject": "成人",
-    "neck": "副作用懸念",
-    "journal": "J Dermatol (仮)",
-    "year": 2023,
-    "url": "https://example.com/slide-or-note-1"
-  },
-  {
-    "id": "p2",
-    "title": "IL-31 と皮膚神経リモデリング：PNモデルを用いた基礎研究",
-    "desc": "PNモデルマウスでのIL-31シグナルと神経線維・線維化マーカーとの関連を解析した基礎研究。",
-    "img": "https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/thumbs/p2.jpg",
-    "disease": "PN",
-    "docType": "基礎",
     "content": "有効性",
     "content2": "繊維化関連",
     "subject": "成人",
     "neck": "症例像不明確",
-    "journal": "Exp Dermatol (仮)",
-    "year": 2022,
-    "url": "https://example.com/slide-or-note-2"
+    "journal": "日皮会会誌",
+    "year": 2024,
+    "url": "onenote:https://maruhojpn-my.sharepoint.com/personal/2835_ad_maruho_co_jp/Documents/ノートブック/SP文献共有_仙台支店/76期ADメニュー表.one#（横浜皮膚科%20三上万理子先生）ネモリズマブのアトピー性皮膚炎患者の瘙痒に対する効果の検討&section-id={BD0F1A6C-C0A9-462F-A61E-12623060A4B1}&page-id={FB13DA37-2667-479F-AFC4-AAED4C47E4CB}&object-id={062B1ED6-2DA5-0D0A-19B0-A327E8F709DA}&6A"
+  },
+  {
+    "id": "p2",
+    "title": "Clinical Characteristics and Risk Factors for Cutaneous Exacerbation of Atopic\nDermatitis: A Multicenter Retrospective Study in Japan",
+    "desc": "成人AD219例を対象に皮疹の悪化とベースライン検査値との関連や悪化時期、悪化部位などを解析した報告",
+    "img": "",
+    "disease": "AD",
+    "docType": "臨床",
+    "content": "安全性",
+    "content2": "",
+    "subject": "成人",
+    "neck": "副作用懸念",
+    "journal": "J Dermatology",
+    "year": 2025,
+    "url": "onenote:https://maruhojpn-my.sharepoint.com/personal/2835_ad_maruho_co_jp/Documents/ノートブック/SP文献共有_仙台支店/76期ADメニュー表.one#AD⑧：（広島大）MIT多施設解析&section-id={BD0F1A6C-C0A9-462F-A61E-12623060A4B1}&page-id={BFF494EA-49AD-48D9-973C-2CAF7C9ED739}&object-id={B7FE4078-44F6-06D0-3DA7-A232823BA669}&D8"
   }
 ]
